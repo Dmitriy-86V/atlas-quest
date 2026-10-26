@@ -121,7 +121,27 @@ input[type=text]{width:100%;font:inherit;padding:12px;border:1.5px solid var(--l
 .portrait.dim{filter:drop-shadow(0 12px 22px rgba(0,0,0,.6)) brightness(.55) saturate(.7)}
 .portrait.on:not(.dim){animation:breathe 5s ease-in-out infinite}
 @keyframes breathe{0%,100%{translate:0 0}50%{translate:0 -6px}}
-@media (max-width:900px){.portrait{height:48vh;width:52vw;max-width:none}.portrait.dim{opacity:0!important}#pR{width:56vw}}
+@media (max-width:900px){
+  .portrait{height:var(--ph,40vh);width:52vw;max-width:none;filter:none!important;animation:none!important}
+  .portrait.dim{opacity:0!important}
+  #pR{width:56vw}
+  body.noport .portrait{opacity:0!important}
+  .title-card{background:var(--parch);margin-top:6vh}
+  .topbar,.linkbtn,#sndBtn,#fsBtn{backdrop-filter:none!important}
+  #app{padding-top:calc(54px + env(safe-area-inset-top))}
+  #sndBtn,#fsBtn{width:38px;height:38px;font-size:17px;bottom:auto!important;top:max(8px, env(safe-area-inset-top))!important}
+  #sndBtn{right:8px} #fsBtn{right:52px}
+  .topbar{flex-wrap:nowrap;padding:6px 10px;gap:8px}
+  .topbar svg{width:34px;height:34px}
+  .topbar .ship{font-size:17px}
+  .topbar .cap{font-size:12px}
+  .topbar .rtxt{display:none}
+  .gold{padding:3px 9px;font-size:14px}
+  .title-card{margin-right:0}
+  .simg{animation:none!important}
+}
+body.standalone #fsBtn{display:none!important}
+
 .speakerbar{display:flex;align-items:center;gap:12px;margin-bottom:12px}
 .ava{width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);background:#e6d3a8;flex:none;box-shadow:0 3px 8px rgba(0,0,0,.25)}
 .speakerbar b{font-family:'Philosopher',serif;font-size:18px;color:var(--accent)}
@@ -196,11 +216,11 @@ body{background:radial-gradient(ellipse at top,#1f3b55,#08121f 75%) fixed}
 .title-card .small-note{font-size:13px;color:var(--ink2);margin-top:14px}
 #fsBtn{position:fixed;top:12px;right:64px;z-index:5;width:44px;height:44px;border-radius:50%;border:1px solid rgba(244,232,204,.5);
   background:rgba(10,25,40,.7);color:#f4e8cc;font-size:20px;cursor:pointer;backdrop-filter:blur(4px)}
-@media (max-width:760px){#fsBtn{top:auto;bottom:12px}}
+
 /* звук */
 #sndBtn{position:fixed;top:12px;right:12px;z-index:5;width:44px;height:44px;border-radius:50%;border:1px solid rgba(244,232,204,.5);
   background:rgba(10,25,40,.7);color:#f4e8cc;font-size:20px;cursor:pointer;backdrop-filter:blur(4px)}
-@media (max-width:760px){#sndBtn{top:auto;bottom:12px}}
+
 .simg{position:absolute;inset:-4%;background-size:cover;background-position:center;opacity:0;filter:blur(0) brightness(1);transition:opacity 1.4s ease, filter 1.8s ease;animation:kb 40s ease-in-out infinite alternate}
 .simg.on{opacity:1}
 .svig{position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 40%,rgba(0,0,0,.45) 100%)}
@@ -608,7 +628,7 @@ function topbar(){
   return `<div class="topbar">${shipSvg(p.color,44)}
     <div class="who"><div class="ship">«${esc(p.ship)}»</div><div class="cap">Капитан ${esc(p.name)}</div></div>
     <div class="gold">● ${state.gold} золотых</div>
-    <button class="restart" id="restartBtn" title="Начать игру сначала">⟲ Сначала</button></div>`;
+    <button class="restart" id="restartBtn" title="Начать игру сначала">⟲<span class="rtxt"> Сначала</span></button></div>`;
 }
 function allTasks(){ const r=[]; CHAPTERS.forEach(c => (c.steps||[]).forEach(s => { if(s.type!=='story') r.push(s); })); return r; }
 function goTop(){ window.scrollTo(0,0); }
@@ -699,6 +719,8 @@ const imgCache = {}; let imgScene = null, imgLayer = 0;
 const vidCache = {};
 /* Точка, с которой ролик повторяется (подобрана по сходству с последними кадрами), — чтобы склейка была незаметной */
 const VIDEO_LOOP = {'chest':2.58, 'port-day':2.96, 'port-night':2.46, 'tavern':2.96, 'fog':2.96, 'ocean-day':1.33, 'island':'hold', 'sunset-port':2.96};
+/* Облегчённый режим для телефонов и слабых устройств */
+const LITE = matchMedia('(max-width:900px)').matches || matchMedia('(pointer:coarse)').matches || (navigator.hardwareConcurrency || 8) <= 4;
 const XFADE = 1.4; /* длительность растворения на склейке, сек */
 function startVideoLoop(layer, src, key, alive){
   const mk = () => {
@@ -707,23 +729,41 @@ function startVideoLoop(layer, src, key, alive){
     v.style.transition = `opacity ${XFADE}s ease`;
     layer.appendChild(v); return v;
   };
-  const A = mk(), B = mk();
-  let cur = A, other = B, swapping = false;
+  const A = mk();
+  const onPlaying = () => {
+    A.style.opacity = 1;
+    layer.classList.remove('cam-arrive','cam-sea','cam-kb'); layer.style.transform = 'none';
+    document.getElementById('fx').innerHTML = ''; curFx = 'video';
+  };
   /* отрицательное значение — повторять только последние N секунд (ролик сначала идёт целиком) */
   const loopVal = VIDEO_LOOP[key] || 0;
   if(loopVal === 'hold'){
     /* сюжетный ролик: проигрывается один раз и замирает на последнем кадре, дальше — медленный наезд */
-    B.remove(); const v = A;
+    const v = A;
     v.addEventListener('ended', () => { v.classList.add('hold'); });
     v.addEventListener('timeupdate', () => { if(!alive()) v.pause(); });
-    v.addEventListener('playing', () => {
-      v.style.opacity = 1;
-      layer.classList.remove('cam-arrive','cam-sea','cam-kb'); layer.style.transform = 'none';
-      document.getElementById('fx').innerHTML = ''; curFx = 'video';
-    }, {once:true});
+    v.addEventListener('playing', onPlaying, {once:true});
     v.play().catch(() => {});
     return;
   }
+  if(LITE){
+    /* телефон: одно видео; в конце растворяется в картинку сцены и начинается заново */
+    let fading = false;
+    A.addEventListener('timeupdate', () => {
+      if(!alive()){ A.pause(); return; }
+      if(!fading && A.duration && A.currentTime > A.duration - 1){ fading = true; A.style.opacity = 0; }
+    });
+    A.addEventListener('ended', () => {
+      A.currentTime = loopVal > 0 ? loopVal : 0;
+      A.play().catch(() => {});
+      setTimeout(() => { A.style.opacity = 1; fading = false; }, 120);
+    });
+    A.addEventListener('playing', onPlaying, {once:true});
+    A.play().catch(() => {});
+    return;
+  }
+  const B = mk();
+  let cur = A, other = B, swapping = false;
   const onTime = () => {
     if(!alive()){ A.pause(); B.pause(); return; }
     if(swapping || !cur.duration || cur.currentTime < cur.duration - XFADE - .15) return;
@@ -737,14 +777,11 @@ function startVideoLoop(layer, src, key, alive){
     }).catch(() => { swapping = false; });
   };
   A.addEventListener('timeupdate', onTime); B.addEventListener('timeupdate', onTime);
-  A.addEventListener('playing', () => {
-    A.style.opacity = 1;
-    layer.classList.remove('cam-arrive','cam-sea','cam-kb'); layer.style.transform = 'none';
-    document.getElementById('fx').innerHTML = ''; curFx = 'video';
-  }, {once:true});
+  A.addEventListener('playing', onPlaying, {once:true});
   A.play().catch(() => {});
 }
 function findVid(file){
+  if(FILES.vid){ if(vidCache[file] === undefined) vidCache[file] = Promise.resolve(FILES.vid.includes(file) ? `img/${file}.mp4` : null); return vidCache[file]; }
   if(vidCache[file] !== undefined) return vidCache[file];
   vidCache[file] = new Promise(res => {
     const v = document.createElement('video'); let done = false;
@@ -783,7 +820,14 @@ function setFx(name){
   box.style.transition = 'opacity .4s'; box.style.opacity = 0;
   setTimeout(() => { box.innerHTML = h; box.style.opacity = 1; }, 400);
 }
+/* Список файлов игры — заполняется автоматически (build.py), чтобы не перебирать расширения по сети */
+const FILES = /*FILES*/{"img": {"chest": "jpg", "columbus-face": "jpg", "columbus": "png", "fog": "jpg", "hero-face": "jpg", "hero": "png", "island": "jpg", "map": "jpg", "ocean-day": "jpg", "ocean-night": "jpg", "palos": "jpg", "port-dawn": "jpg", "port-day": "jpg", "port-night": "jpg", "sailor-face": "jpg", "sailor": "png", "sebastian-face": "jpg", "sebastian": "png", "sunset-port": "jpg", "tavern": "jpg"}, "vid": ["chest", "fog", "island", "ocean-day", "port-day", "port-night", "sunset-port", "tavern"], "snd": ["chest", "fog", "island", "ocean-day", "port-day", "port-night", "sunset-port", "tavern"]}/*/FILES*/;
 function findImg(file){
+  if(FILES.img){
+    if(imgCache[file] !== undefined) return imgCache[file];
+    const ext = FILES.img[file];
+    return imgCache[file] = Promise.resolve(ext ? `img/${file}.${ext}` : null);
+  }
   if(imgCache[file] !== undefined) return imgCache[file];
   imgCache[file] = new Promise(res => {
     const exts = ['jpg','jpeg','png','webp'];
@@ -889,6 +933,7 @@ function actx(){
   return SND.ctx;
 }
 function findSnd(file){
+  if(FILES.snd){ if(SND.cache[file] === undefined) SND.cache[file] = Promise.resolve(FILES.snd.includes(file) ? `snd/${file}.mp3` : null); return SND.cache[file]; }
   if(SND.cache[file] !== undefined) return SND.cache[file];
   SND.cache[file] = new Promise(res => {
     const exts = ['mp3','ogg','wav','m4a'];
@@ -1015,7 +1060,22 @@ document.addEventListener('click', e => {
   if(e.target.closest('.btn,.chip,.mrow,.sw')) sfx('click');
 });
 /* Анимация появления карточек при каждой смене экрана */
-new MutationObserver(() => { app.classList.remove('enter'); void app.offsetWidth; app.classList.add('enter'); })
+/* На телефоне герои стоят под карточкой и занимают только свободное место; если места нет — прячутся */
+function fitPortraits(){
+  const root = document.documentElement;
+  if(innerWidth > 900){ document.body.classList.remove('noport'); return; }
+  let bottom = 0;
+  [...app.children].forEach(el => { if(!el.classList.contains('foot')) bottom = Math.max(bottom, el.getBoundingClientRect().bottom); });
+  const avail = innerHeight - bottom - 6;
+  if(avail < 170){ document.body.classList.add('noport'); }
+  else { document.body.classList.remove('noport'); root.style.setProperty('--ph', Math.round(Math.min(avail, innerHeight * .6)) + 'px'); }
+}
+let fitT = 0;
+const fitSoon = () => { cancelAnimationFrame(fitT); fitT = requestAnimationFrame(fitPortraits); };
+new ResizeObserver(fitSoon).observe(app);
+addEventListener('resize', fitSoon); addEventListener('scroll', fitSoon, {passive:true});
+if(matchMedia('(display-mode: fullscreen)').matches || matchMedia('(display-mode: standalone)').matches || navigator.standalone) document.body.classList.add('standalone');
+new MutationObserver(() => { app.classList.remove('enter'); void app.offsetWidth; app.classList.add('enter'); setTimeout(fitPortraits, 650); })
   .observe(app, {childList:true});
 
 function canFS(){ const d = document.documentElement; return !!(d.requestFullscreen || d.webkitRequestFullscreen); }
