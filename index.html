@@ -111,7 +111,7 @@ input[type=text]{width:100%;font:inherit;padding:12px;border:1.5px solid var(--l
 @media (max-width:480px){h1{font-size:26px}.card{padding:16px}.q{font-size:18px}}
 
 /* ===== Персонажи ===== */
-.portrait{position:fixed;bottom:0;height:84vh;width:max(calc((100vw - 780px)/2), 200px);max-width:44vw;object-fit:contain;
+.portrait{position:fixed;bottom:0;height:84vh;width:calc((100vw - 760px)/2 - 6px);max-width:44vw;object-fit:contain;
   z-index:1;pointer-events:none;opacity:0;transition:opacity .55s ease, transform .55s cubic-bezier(.2,.8,.2,1), filter .5s ease;
   filter:drop-shadow(0 12px 22px rgba(0,0,0,.6))}
 #pL{left:0;object-position:bottom center;transform:translateX(-60px)}
@@ -129,8 +129,8 @@ input[type=text]{width:100%;font:inherit;padding:12px;border:1.5px solid var(--l
   .title-card{background:var(--parch);margin-top:6vh}
   .topbar,.linkbtn,#sndBtn,#fsBtn{backdrop-filter:none!important}
   #app{padding-top:calc(54px + env(safe-area-inset-top))}
-  #sndBtn,#fsBtn{width:38px;height:38px;font-size:17px;bottom:auto!important;top:max(8px, env(safe-area-inset-top))!important}
-  #sndBtn{right:8px} #fsBtn{right:52px}
+  #sndBtn,#fsBtn{position:absolute!important;width:38px!important;height:38px!important;font-size:17px!important;bottom:auto!important;top:max(8px, env(safe-area-inset-top))!important}
+  #sndBtn{right:8px!important} #fsBtn{right:52px!important}
   .topbar{flex-wrap:nowrap;padding:6px 10px;gap:8px}
   .topbar svg{width:34px;height:34px}
   .topbar .ship{font-size:17px}
@@ -397,7 +397,7 @@ const CHAPTERS = [
     exp:['Тортугу отделяет от Эспаньолы узкий пролив. Рядом проходит Наветренный пролив между Кубой и Эспаньолой — короткий путь из Атлантического океана в Карибское море.',
          'Пиратам такое место было очень удобно: отсюда хорошо видно корабли, идущие этим путём.'],
     card:{title:'Наветренный пролив', text:'Пролив между Кубой и Эспаньолой: короткий путь из Атлантики в Карибское море. Тортуга совсем рядом.'}},
-   {type:'story', scene:'fog', who:'sailor', text:['Себастьян довольно хмыкает и отдаёт тебе компас. Ты поднимаешься на борт «{ship}», и стрелка вдруг начинает вращаться всё быстрее…',
+   {type:'story', scene:'fog', who:'sailor', text:['Себастьян довольно хмыкает и отдаёт тебе компас. Ты поднимаешься на борт корабля «{ship}», и стрелка вдруг начинает вращаться всё быстрее…',
      'Корабль окутывает густой туман. Когда он рассеивается, ты видишь чужой берег: белые дома, колокольню и три корабля у причала. На пристани говорят по-испански.',
      '<span class="speaker">Мальчишка-матрос машет тебе рукой: «Ты новенькая? Давай к нам на „Пинту“! Адмирал Колумб отплывает на рассвете!»</span>',
      'Компас показывает дату: 2 августа 1492 года.']},
@@ -551,7 +551,7 @@ const CHAPTERS = [
          'Удивительно, но до самой смерти в 1506 году Колумб так и не признал, что открыл новую часть света: он считал эти земли окраиной Азии.'],
     card:{title:'Четыре плавания', text:'С 1492 по 1504 год Колумб четырежды плавал в Новый Свет, но до конца жизни считал его Азией.'}}
   ],
-  outro:['Стрелка компаса снова закружилась, и туман вернул «{ship}» в гавань Тортуги.',
+  outro:['Стрелка компаса снова закружилась, и туман вернул корабль «{ship}» в гавань Тортуги.',
     'Ты открываешь атлас: на месте тумана проступили Карибские острова, берега Испании и путь трёх кораблей через океан.',
     'А на полях страницы — надпись, сделанная почерком картографа:',
     '<span class="speaker">«Если ты читаешь это, компас нашёл нового капитана. Ищи меня там, где Африка встречается с двумя океанами».</span>']
