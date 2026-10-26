@@ -169,7 +169,11 @@ body.standalone #fsBtn{display:none!important}
   .simg{inset:0!important;animation:none!important;background-position:var(--fx,50%) center!important}
   .svid{object-position:var(--fx,50%) center}
   .svig{background:linear-gradient(90deg,rgba(0,0,0,0) 70%,rgba(0,0,0,.55))}
-  .portrait{display:none!important}
+  .portrait{height:82vh!important;width:24vw!important;max-width:none!important;filter:drop-shadow(0 8px 14px rgba(0,0,0,.6))!important}
+  #pL{left:0!important;object-position:bottom center!important}
+  #pR{right:44vw!important;left:auto!important;object-position:bottom center!important}
+  body.noport .portrait.on{opacity:1!important}
+  .portrait.dim{opacity:1!important;filter:brightness(.55) saturate(.7)!important}
   #app{width:44vw!important;max-width:none!important;margin:0 0 0 auto!important;padding:8px 10px 24px 6px!important}
   body{font-size:15px}
   .card{padding:12px 14px!important;margin-bottom:10px;border-radius:12px}
@@ -581,7 +585,7 @@ const CHAPTERS = [
     exp:['Это Куба. Колумб доплыл до неё 28 октября 1492 года. Остров длинный и узкий: он протянулся больше чем на 1000 км.',
          'Второй по величине остров Карибского моря — Эспаньола. Редкий случай: на одном острове находятся два государства — Гаити и Доминиканская Республика.'],
     card:{title:'Куба', text:'Самый большой остров Карибского моря. Колумб доплыл до него 28 октября 1492 года и принял за часть Азии.'}},
-   {id:'t17', type:'choice',
+   {id:'t17', type:'choice', scene:'taino-village',
     q:'Таино встречают гостей дружелюбно. Моряки удивлены: местные спят не на земле, а в сетках, подвешенных между деревьями. Какое слово пришло к нам из языка таино?',
     opts:['Гамак','Компас','Якорь','Карта'], ans:0,
     hint:'Это та самая подвесная сетка для сна.',
@@ -595,7 +599,7 @@ const CHAPTERS = [
     exp:['Кукурузу европейцы впервые увидели именно в Америке. Индейцы выращивали её уже несколько тысяч лет.',
          'После плаваний Колумба начался великий обмен между Старым и Новым Светом. Из Америки в Европу попали кукуруза, картофель, помидоры, какао, подсолнечник и тыква. А в Америку европейцы привезли лошадей, коров, пшеницу и сахарный тростник.'],
     card:{title:'Колумбов обмен', text:'Из Америки пришли кукуруза, картофель, помидоры и какао, а в Америку — лошади, коровы и пшеница.'}},
-   {id:'t19', type:'choice',
+   {id:'t19', type:'choice', scene:'hispaniola',
     rv:{ids:[214], bbox:[[-75,17],[-67.5,20.6]], at:[-71.2,19], label:'Эспаньола'},
     q:'Колумб плывёт дальше на восток и находит большой гористый остров. Он даёт ему имя Эспаньола. Что означает это название?',
     opts:['«Испанский остров»','«Остров пряностей»','«Остров черепах»','«Золотой остров»'], ans:0,
@@ -611,7 +615,7 @@ const CHAPTERS = [
     exp:['Америку назвали не в честь Колумба, а в честь Америго Веспуччи. Он плавал к берегам Южной Америки и одним из первых написал, что это не Азия, а Новый Свет. В 1507 году картограф Мартин Вальдземюллер подписал новую землю на своей карте словом «Америка».',
          'Карибы — один из народов, которые жили на островах, когда туда приплыли европейцы.'],
     card:{title:'Имя Америки', text:'Материк назван в честь Америго Веспуччи — так его подписал картограф Мартин Вальдземюллер в 1507 году.'}},
-   {id:'t20', type:'map',
+   {id:'t20', type:'map', scene:'eclipse',
     rv:{ids:[388]},
     q:'В последнем плавании корабли Колумба совсем прохудились, и ему пришлось почти год прожить на одном острове. Отметь на карте Ямайку.',
     bbox:[[-86,15],[-66,24]], target:[-77.3,18.1], tol:120, targetLabel:'Ямайка', country:388,
@@ -621,7 +625,7 @@ const CHAPTERS = [
          'Тогда Колумб, зная из астрономического альманаха о скором лунном затмении, объявил, что Бог разгневан и скроет Луну. 29 февраля 1504 года Луна действительно потемнела, и испуганные жители снова начали помогать морякам.',
          'Вот как пригодилось знание астрономии!'],
     card:{title:'Лунное затмение', text:'В 1504 году на Ямайке Колумб «предсказал» лунное затмение, о котором знал из альманаха, и так получил помощь местных жителей.'}},
-   {id:'t11', type:'choice', who:'columbus',
+   {id:'t11', type:'choice', who:'columbus', scene:'sunset-port',
     rv:{ids:[340,558,188,591,862,780], bbox:[[-92,4],[-58,25]], at:[-80,12.5], label:'Земли четырёх плаваний'},
     q:'Последний вопрос перед возвращением. Сколько всего плаваний к берегам Америки совершил Колумб?',
     opts:['Четыре','Одно','Два','Семь'], ans:0,
@@ -739,10 +743,14 @@ const SCENE_IMG = {
   'island':      {file:'island',      fb:'tropic'},
   'sunset-port': {file:'sunset-port', fb:'sunset'},
   'cabin':       {file:'cabin',       fb:'night-sea'},
-  'map':         {file:'map',         fb:'night-sea'}
+  'map':         {file:'map',         fb:'night-sea'},
+  'taino-village':{file:'taino-village', fb:'tropic'},
+  'hispaniola':  {file:'hispaniola',  fb:'tropic'},
+  'eclipse':     {file:'eclipse',     fb:'night-sea'}
 };
 /* Если нужной картинки ещё нет — берём ближайшую подходящую */
 const SCENE_ALT = {
+  'taino-village':['island'], 'hispaniola':['island'], 'eclipse':['ocean-night'],
   'chest':['tavern'], 'port-dawn':['port-day'], 'fog':['port-night'], 'palos':['port-day'],
   'ocean-day':['port-day'], 'ocean-night':['port-night'], 'island':['port-day'],
   'sunset-port':['port-night','port-day'], 'cabin':['map','tavern'], 'tavern':['port-night']
@@ -797,10 +805,17 @@ function fillAvatars(){
 const imgCache = {}; let imgScene = null, imgLayer = 0;
 const vidCache = {};
 /* Точка, с которой ролик повторяется (подобрана по сходству с последними кадрами), — чтобы склейка была незаметной */
-const VIDEO_LOOP = {'chest':2.58, 'port-day':2.96, 'port-night':2.46, 'tavern':2.96, 'fog':2.96, 'ocean-day':1.33, 'island':'hold', 'sunset-port':2.96};
+const VIDEO_LOOP = {'chest':2.58, 'port-day':2.96, 'port-night':2.46, 'tavern':2.96, 'fog':2.96, 'ocean-day':4.9, 'island':'hold', 'sunset-port':2.96,
+  'palos':2.92, 'ocean-night':2.96, 'taino-village':5.0, 'hispaniola':1.96, 'eclipse':2.96};
 /* Облегчённый режим для телефонов и слабых устройств */
 const LITE = matchMedia('(max-width:900px)').matches || matchMedia('(pointer:coarse)').matches || (navigator.hardwareConcurrency || 8) <= 4;
 const XFADE = 1.4; /* длительность растворения на склейке, сек */
+/* Сюжетный ролик (высадка) проигрывается заново на каждом новом задании этой сцены */
+function replayHold(){
+  const v = document.querySelector('.simg.on .svid.hold, .simg.on .svid[data-hold]');
+  if(!v || !v.classList.contains('hold')) return;
+  v.classList.remove('hold'); v.currentTime = 0; v.play().catch(() => {});
+}
 function startVideoLoop(layer, src, key, alive){
   const mk = () => {
     const v = document.createElement('video');
@@ -819,13 +834,14 @@ function startVideoLoop(layer, src, key, alive){
   if(loopVal === 'hold'){
     /* сюжетный ролик: проигрывается один раз и замирает на последнем кадре, дальше — медленный наезд */
     const v = A;
+    v.dataset.hold = '1';
     v.addEventListener('ended', () => { v.classList.add('hold'); });
     v.addEventListener('timeupdate', () => { if(!alive()) v.pause(); });
     v.addEventListener('playing', onPlaying, {once:true});
     v.play().catch(() => {});
     return;
   }
-  if(LITE){
+  if(false && LITE){ /* v1.5: на телефонах снова плавная склейка двух роликов, как на ПК */
     /* телефон: одно видео; в конце растворяется в картинку сцены и начинается заново */
     let fading = false;
     A.addEventListener('timeupdate', () => {
@@ -900,7 +916,7 @@ function setFx(name){
   setTimeout(() => { box.innerHTML = h; box.style.opacity = 1; }, 400);
 }
 /* Список файлов игры — заполняется автоматически (build.py), чтобы не перебирать расширения по сети */
-const FILES = /*FILES*/{"img": {"chest": "jpg", "columbus-face": "jpg", "columbus": "png", "fog": "jpg", "hero-face": "jpg", "hero": "png", "island": "jpg", "map": "jpg", "ocean-day": "jpg", "ocean-night": "jpg", "palos": "jpg", "port-dawn": "jpg", "port-day": "jpg", "port-night": "jpg", "sailor-face": "jpg", "sailor": "png", "sebastian-face": "jpg", "sebastian": "png", "sunset-port": "jpg", "tavern": "jpg"}, "vid": ["chest", "fog", "island", "ocean-day", "port-day", "port-night", "sunset-port", "tavern"], "snd": ["chest", "fog", "island", "ocean-day", "port-day", "port-night", "sunset-port", "tavern"]}/*/FILES*/;
+const FILES = /*FILES*/{"img": {"chest": "jpg", "columbus-face": "jpg", "columbus": "png", "eclipse": "jpg", "fog": "jpg", "hero-face": "jpg", "hero": "png", "hispaniola": "jpg", "island": "jpg", "map": "jpg", "ocean-day": "jpg", "ocean-night": "jpg", "palos": "jpg", "port-dawn": "jpg", "port-day": "jpg", "port-night": "jpg", "sailor-face": "jpg", "sailor": "png", "sebastian-face": "jpg", "sebastian": "png", "sunset-port": "jpg", "taino-village": "jpg", "tavern": "jpg"}, "vid": ["chest", "eclipse", "fog", "hispaniola", "island", "ocean-day", "ocean-night", "palos", "port-day", "port-night", "sunset-port", "taino-village", "tavern"], "snd": ["chest", "eclipse", "fog", "hispaniola", "island", "ocean-day", "ocean-night", "palos", "port-day", "port-night", "sunset-port", "taino-village", "tavern"]}/*/FILES*/;
 function findImg(file){
   if(FILES.img){
     if(imgCache[file] !== undefined) return imgCache[file];
@@ -923,11 +939,13 @@ const SCENE_PLACE = {
   'port-night':'Тортуга, 1650 год', 'tavern':'Таверна «Старый якорь»', 'chest':'Сундук картографа',
   'port-dawn':'Тортуга, рассвет', 'port-day':'Порт Тортуга', 'fog':'Сквозь время…',
   'palos':'Палос, Испания · 2 августа 1492', 'ocean-day':'Атлантический океан', 'ocean-night':'Ночь на 12 октября 1492',
-  'island':'Остров Гуанахани · 12 октября 1492', 'sunset-port':'Возвращение в Тортугу'
+  'island':'Остров Гуанахани · 12 октября 1492', 'sunset-port':'Возвращение в Тортугу',
+  'taino-village':'Деревня таино', 'hispaniola':'Эспаньола · декабрь 1492', 'eclipse':'Ямайка · 29 февраля 1504'
 };
 /* Какую часть кадра держать в центре на вертикальном экране (0% — левый край, 100% — правый) */
 const SCENE_FOCUS = {'port-day':'32%','port-night':'38%','tavern':'50%','chest':'34%','fog':'50%','palos':'45%',
-  'ocean-day':'40%','ocean-night':'55%','island':'50%','sunset-port':'78%','port-dawn':'72%','map':'50%'};
+  'ocean-day':'40%','ocean-night':'55%','island':'50%','sunset-port':'78%','port-dawn':'72%','map':'50%',
+  'taino-village':'45%','hispaniola':'72%','eclipse':'55%'};
 const cineSeen = new Set();
 let cineTimer = 0, cineOn = false;
 function startCine(name){
@@ -1040,7 +1058,8 @@ document.addEventListener('click', e => { if(e.target.closest('#restartBtn')) re
 const SCENE_SND = {
   'port-night':'port-night', 'tavern':'tavern', 'chest':'chest', 'port-dawn':'port-day', 'port-day':'port-day',
   'fog':'fog', 'palos':'port-day', 'ocean-day':'ocean-day', 'ocean-night':'ocean-night', 'island':'island',
-  'sunset-port':'sunset-port', 'map':'cabin', 'cabin':'cabin'
+  'sunset-port':'sunset-port', 'map':'cabin', 'cabin':'cabin',
+  'palos':'palos', 'taino-village':'taino-village', 'hispaniola':'hispaniola', 'eclipse':'eclipse'
 };
 /* Пока файла нет, море и волшебный гул генерируются прямо в браузере */
 const SYNTH_FOR = {'ocean-night':'sea','island':'sea','port-day':'sea','port-night':'sea','ocean-day':'sea','sunset-port':'sea','fog':'magic'};
@@ -1260,6 +1279,7 @@ function renderTitle(){
     ${has ? '<button class="btn ghost" id="newg">Новая игра</button>' : ''}
     ${installHtml()}
     <div class="small-note">Игра откроется во весь экран. Включите звук на устройстве.</div>
+    <div class="small-note" style="opacity:.55;margin-top:6px">версия ${GAME_VERSION}</div>
   </div>`;
   document.getElementById('go').onclick = () => { if(canFS()) enterFS(); goTop(); begin(); };
   const ng = document.getElementById('newg'); if(ng) ng.onclick = () => { if(canFS()) enterFS(); restartGame(); };
@@ -1270,6 +1290,7 @@ function begin(){
   if(!state.player) return renderRegister();
   renderHub();
 }
+const GAME_VERSION = '1.5';
 let titled = false;
 function start(){
   drawSndBtn();
@@ -1310,7 +1331,7 @@ function renderRegister(){
     <label for="nm">Имя капитана</label>
     <input type="text" id="nm" maxlength="30" autocomplete="off" placeholder="Как тебя зовут?">
     <label for="sh">Название корабля</label>
-    <input type="text" id="sh" maxlength="30" autocomplete="off" placeholder="Придумай или выбери ниже" value="Чёрная жемчужина">
+    <input type="text" id="sh" maxlength="30" autocomplete="off" placeholder="Придумай или выбери ниже">
     <div class="chips">${SHIP_IDEAS.map(s => `<button class="chip" data-s="${esc(s)}">${esc(s)}</button>`).join('')}</div>
     <label>Цвет парусов</label>
     <div class="row" style="align-items:center;margin-top:4px">
@@ -1418,6 +1439,7 @@ function renderChapter(id){
   const step = c.steps[cs.idx];
   let sc = 'ocean-day'; for(let k=cs.idx;k>=0;k--){ if(c.steps[k].scene){ sc = c.steps[k].scene; break; } }
   showScene(sc);
+  if(sc === 'island') replayHold();
   if(step.who) setSpeaker(step.who); else setCast('hero', null, 'L');
   const doneCount = c.steps.slice(0, cs.idx).filter(s => s.type !== 'story').length;
   const bar = `<div class="progress"><div style="width:${Math.round(doneCount/tasks.length*100)}%"></div></div>`;
