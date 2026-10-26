@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Атлас пропавшего картографа</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#14303f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Атлас">
 <link href="https://fonts.googleapis.com/css2?family=Philosopher:wght@400;700&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
@@ -1022,6 +1030,34 @@ function toggleFS(){
 document.getElementById('fsBtn').onclick = e => { e.stopPropagation(); toggleFS(); };
 if(!canFS()) document.getElementById('fsBtn').style.display = 'none';
 
+/* ===== Установка как приложение (PWA) ===== */
+let installEvt = null;
+const isStandalone = () => matchMedia('(display-mode: fullscreen)').matches || matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); installEvt = e;
+  const b = document.getElementById('instBtn'); if(b) b.style.display = '';
+});
+window.addEventListener('appinstalled', () => { installEvt = null; const w = document.getElementById('instWrap'); if(w) w.remove(); });
+function installHtml(){
+  if(isStandalone() || location.protocol === 'file:') return '';
+  if(isIOS) return `<div id="instWrap" class="small-note" style="margin-top:10px">Чтобы установить игру на iPhone: кнопка «Поделиться» → «На экран Домой».</div>`;
+  return `<div id="instWrap"><button class="btn ghost" id="instBtn" style="${installEvt ? '' : 'display:none'}">📲 Установить на устройство</button></div>`;
+}
+function bindInstall(){
+  const b = document.getElementById('instBtn'); if(!b) return;
+  b.onclick = async () => {
+    if(!installEvt) return;
+    installEvt.prompt();
+    const r = await installEvt.userChoice;
+    installEvt = null;
+    if(r.outcome === 'accepted'){ const w = document.getElementById('instWrap'); if(w) w.remove(); }
+  };
+}
+if('serviceWorker' in navigator && location.protocol !== 'file:'){
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+
 function renderTitle(){
   showScene('port-night');
   setCast(null, 'hero', null); /* слева в этой сцене костёр — ставим героиню к причалу справа */
@@ -1032,10 +1068,12 @@ function renderTitle(){
     <div class="sub">Приключение юнги из Тортуги</div>
     <button class="btn" id="go">${has ? 'Продолжить' + who : 'Начать приключение'}</button>
     ${has ? '<button class="btn ghost" id="newg">Новая игра</button>' : ''}
+    ${installHtml()}
     <div class="small-note">Игра откроется во весь экран. Включите звук на устройстве.</div>
   </div>`;
   document.getElementById('go').onclick = () => { if(canFS()) enterFS(); goTop(); begin(); };
   const ng = document.getElementById('newg'); if(ng) ng.onclick = () => { if(canFS()) enterFS(); restartGame(); };
+  bindInstall();
 }
 function begin(){
   if(!state.introSeen) return renderIntro(0);
