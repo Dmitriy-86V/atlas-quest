@@ -1231,7 +1231,6 @@ function enterFS(){
 const IS_PHONE = Math.min(screen.width, screen.height) < 600 && matchMedia('(pointer:coarse)').matches;
 function lockLand(){ if(IS_PHONE && screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => {}); }
 if(IS_PHONE) document.body.classList.add('phone');
-if(IS_PHONE && document.body.classList.contains('standalone')) lockLand();
 document.getElementById('rotSkip').onclick = e => { e.stopPropagation(); document.body.classList.add('rotok'); };
 function toggleFS(){
   if(isFS()){ (document.exitFullscreen || document.webkitExitFullscreen).call(document); } else enterFS();
@@ -1290,7 +1289,7 @@ function begin(){
   if(!state.player) return renderRegister();
   renderHub();
 }
-const GAME_VERSION = '1.6';
+const GAME_VERSION = '1.7';
 let titled = false;
 function start(){
   drawSndBtn();
