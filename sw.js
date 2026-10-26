@@ -1,6 +1,6 @@
 /* Офлайн-режим игры: файлы сохраняются на устройстве после первого открытия.
    При выходе новой версии поменяйте VERSION — старый кэш удалится. */
-const VERSION = 'atlas-v2';
+const VERSION = 'atlas-v3';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 /* картинки и звуки скачиваются сразу, чтобы игра работала без интернета (видео — нет, они тяжёлые) */
 const ASSETS = ["./img/chest.jpg", "./img/columbus-face.jpg", "./img/columbus.png", "./img/fog.jpg", "./img/hero-face.jpg", "./img/hero.png", "./img/island.jpg", "./img/map.jpg", "./img/ocean-day.jpg", "./img/ocean-night.jpg", "./img/palos.jpg", "./img/port-dawn.jpg", "./img/port-day.jpg", "./img/port-night.jpg", "./img/sailor-face.jpg", "./img/sailor.png", "./img/sebastian-face.jpg", "./img/sebastian.png", "./img/sunset-port.jpg", "./img/tavern.jpg", "./snd/chest.mp3", "./snd/fog.mp3", "./snd/island.mp3", "./snd/ocean-day.mp3", "./snd/port-day.mp3", "./snd/port-night.mp3", "./snd/sunset-port.mp3", "./snd/tavern.mp3"];

@@ -153,6 +153,44 @@ body.standalone #fsBtn{display:none!important}
   .title-card h1{font-size:32px}
   #cineCap .place{font-size:18px;padding:8px 16px}
 }
+/* ===== Подсказка повернуть телефон ===== */
+#rotate{display:none;position:fixed;inset:0;z-index:20;background:radial-gradient(ellipse at top,#1f3b55,#08121f 75%);color:#f4e8cc;
+  flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px}
+#rotate .rot-ico{font-size:64px;animation:rotIco 2.4s ease-in-out infinite}
+@keyframes rotIco{0%,25%{transform:rotate(0)}50%,75%{transform:rotate(-90deg)}100%{transform:rotate(0)}}
+#rotate .rot-t{font-family:'Philosopher',serif;font-size:24px;font-weight:700;margin-top:18px}
+#rotate .rot-s{opacity:.75;margin-top:6px;font-size:15px}
+#rotate button{margin-top:28px;background:none;border:0;color:#f4e8cc;opacity:.6;text-decoration:underline;font:inherit;font-size:14px}
+@media (orientation:portrait){ body.phone:not(.rotok) #rotate{display:flex} }
+/* ===== Горизонтальный телефон: видео слева, текст панелью справа ===== */
+@media (orientation:landscape) and (max-height:520px){
+  #scenebg,#fx{right:44vw;transition:right .6s ease}
+  body.cine #scenebg, body.peek #scenebg, body.cine #fx, body.peek #fx{right:0}
+  .simg{inset:0!important;animation:none!important;background-position:var(--fx,50%) center!important}
+  .svid{object-position:var(--fx,50%) center}
+  .svig{background:linear-gradient(90deg,rgba(0,0,0,0) 70%,rgba(0,0,0,.55))}
+  .portrait{display:none!important}
+  #app{width:44vw!important;max-width:none!important;margin:0 0 0 auto!important;padding:8px 10px 24px 6px!important}
+  body{font-size:15px}
+  .card{padding:12px 14px!important;margin-bottom:10px;border-radius:12px}
+  h2{font-size:20px} h3{font-size:17px}
+  .story p{font-size:15px!important}
+  .q{font-size:16px!important}
+  .opt{padding:8px 11px!important;min-height:40px!important;margin:5px 0!important}
+  .btn{min-height:42px;padding:9px 16px;font-size:16px}
+  .speakerbar{margin-bottom:8px} .ava{width:46px!important;height:46px!important}
+  .topbar{padding:5px 9px!important;gap:7px!important;flex-wrap:nowrap!important}
+  .topbar svg{width:30px;height:30px} .topbar .ship{font-size:15px!important} .topbar .cap{font-size:11px!important}
+  .topbar .rtxt{display:none} .gold{font-size:13px;padding:2px 8px}
+  .title-card{margin-top:4vh!important;padding:18px 16px!important}
+  .title-card h1{font-size:24px!important} .title-card .btn{min-width:0;width:100%}
+  #sndBtn,#fsBtn,#eyeBtn{position:fixed!important;top:8px!important;right:auto!important;bottom:auto!important;width:38px!important;height:38px!important;font-size:16px!important}
+  #eyeBtn{left:8px!important} #fsBtn{left:52px!important} #sndBtn{left:96px!important}
+  body.standalone #sndBtn{left:52px!important}
+  #cineCap .place{font-size:18px;padding:8px 18px}
+  #cineCap{bottom:16px}
+  .mapbox svg{max-width:100%}
+}
 /* на вертикальном экране держим в кадре главное в каждой сцене */
 @media (orientation:portrait) and (max-width:900px){
   .simg{background-position:var(--fx,50%) center!important}
@@ -393,6 +431,7 @@ body.sky-sunset .cloud{fill:#f6c7a8} body.sky-dawn .cloud{fill:#f3d2c1}
 <button id="fsBtn" title="Во весь экран">⛶</button>
 <button id="eyeBtn" title="Посмотреть сцену">👁</button>
 <div id="cineTap"></div>
+<div id="rotate"><div class="rot-ico">📱</div><div class="rot-t">Поверните телефон горизонтально</div><div class="rot-s">Так сцены и видео видны целиком</div><button id="rotSkip">Играть вертикально</button></div>
 <div id="cineCap"><span class="place"></span><div class="bar"><i></i></div><span class="skip">нажми, чтобы продолжить</span></div>
 <button id="sndBtn" title="Звук"></button>
 <div id="app"></div>
@@ -400,10 +439,10 @@ body.sky-sunset .cloud{fill:#f6c7a8} body.sky-dawn .cloud{fill:#f3d2c1}
 /* ===================== ДАННЫЕ ===================== */
 const TORTUGA = [-72.78, 20.05];
 const SAILS = [
-  {c:'#b03a2e', n:'Алый'}, {c:'#2e7d5b', n:'Изумрудный'}, {c:'#2c6e9e', n:'Лазурный'},
+  {c:'#262626', n:'Чёрный'}, {c:'#b03a2e', n:'Алый'}, {c:'#2e7d5b', n:'Изумрудный'}, {c:'#2c6e9e', n:'Лазурный'},
   {c:'#c9962b', n:'Золотой'}, {c:'#6b4c9a', n:'Фиолетовый'}
 ];
-const SHIP_IDEAS = ['Морская ласточка','Северная звезда','Бесстрашная','Ветер странствий','Дельфин'];
+const SHIP_IDEAS = ['Чёрная жемчужина','Морская ласточка','Северная звезда','Бесстрашная','Ветер странствий','Дельфин'];
 
 const INTRO_WHO = ['hero','sebastian',null,'sebastian'];
 const INTRO = [
@@ -1144,7 +1183,7 @@ document.addEventListener('click', e => {
 /* На телефоне герои стоят под карточкой и занимают только свободное место; если места нет — прячутся */
 function fitPortraits(){
   const root = document.documentElement;
-  if(innerWidth > 900){ document.body.classList.remove('noport'); return; }
+  if(innerWidth > 900 || innerHeight <= 520){ document.body.classList.remove('noport'); return; }
   let bottom = 0;
   [...app.children].forEach(el => { if(!el.classList.contains('foot')) bottom = Math.max(bottom, el.getBoundingClientRect().bottom); });
   const avail = innerHeight - bottom - 6;
@@ -1164,8 +1203,17 @@ function canFS(){ const d = document.documentElement; return !!(d.requestFullscr
 function isFS(){ return !!(document.fullscreenElement || document.webkitFullscreenElement); }
 function enterFS(){
   const d = document.documentElement;
-  try{ const p = (d.requestFullscreen || d.webkitRequestFullscreen).call(d, {navigationUI:'hide'}); if(p && p.catch) p.catch(() => {}); }catch(e){}
+  try{
+    const p = (d.requestFullscreen || d.webkitRequestFullscreen).call(d, {navigationUI:'hide'});
+    if(p && p.then) p.then(lockLand).catch(() => {}); else lockLand();
+  }catch(e){}
 }
+/* Телефон: игра идёт в горизонтальном положении */
+const IS_PHONE = Math.min(screen.width, screen.height) < 600 && matchMedia('(pointer:coarse)').matches;
+function lockLand(){ if(IS_PHONE && screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => {}); }
+if(IS_PHONE) document.body.classList.add('phone');
+if(IS_PHONE && document.body.classList.contains('standalone')) lockLand();
+document.getElementById('rotSkip').onclick = e => { e.stopPropagation(); document.body.classList.add('rotok'); };
 function toggleFS(){
   if(isFS()){ (document.exitFullscreen || document.webkitExitFullscreen).call(document); } else enterFS();
 }
@@ -1262,7 +1310,7 @@ function renderRegister(){
     <label for="nm">Имя капитана</label>
     <input type="text" id="nm" maxlength="30" autocomplete="off" placeholder="Как тебя зовут?">
     <label for="sh">Название корабля</label>
-    <input type="text" id="sh" maxlength="30" autocomplete="off" placeholder="Придумай или выбери ниже">
+    <input type="text" id="sh" maxlength="30" autocomplete="off" placeholder="Придумай или выбери ниже" value="Чёрная жемчужина">
     <div class="chips">${SHIP_IDEAS.map(s => `<button class="chip" data-s="${esc(s)}">${esc(s)}</button>`).join('')}</div>
     <label>Цвет парусов</label>
     <div class="row" style="align-items:center;margin-top:4px">
