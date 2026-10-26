@@ -141,6 +141,23 @@ input[type=text]{width:100%;font:inherit;padding:12px;border:1.5px solid var(--l
   .simg{animation:none!important}
 }
 body.standalone #fsBtn{display:none!important}
+@media (max-width:900px){
+  #eyeBtn{position:absolute!important;width:38px!important;height:38px!important;font-size:16px!important;top:max(8px, env(safe-area-inset-top))!important;right:96px!important}
+  body.standalone #eyeBtn{right:52px!important}
+  .card{padding:14px 15px}
+  body{font-size:16px}
+  .story p{font-size:16px}
+  .q{font-size:17px}
+  .opt{padding:10px 12px;min-height:44px;margin:6px 0}
+  .fb{padding:12px}
+  .title-card h1{font-size:32px}
+  #cineCap .place{font-size:18px;padding:8px 16px}
+}
+/* на вертикальном экране держим в кадре главное в каждой сцене */
+@media (orientation:portrait) and (max-width:900px){
+  .simg{background-position:var(--fx,50%) center!important}
+  .svid{object-position:var(--fx,50%) center}
+}
 
 .speakerbar{display:flex;align-items:center;gap:12px;margin-bottom:12px}
 .ava{width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);background:#e6d3a8;flex:none;box-shadow:0 3px 8px rgba(0,0,0,.25)}
@@ -162,6 +179,26 @@ body.has-img #scenebg{opacity:1}
 body{background:radial-gradient(ellipse at top,#1f3b55,#08121f 75%) fixed}
 #bg{transition:opacity 1.2s}
 /* переходы */
+/* показ сцены перед текстом и режим «посмотреть сцену» */
+#app,.portrait{transition:opacity .6s ease, transform .6s cubic-bezier(.2,.8,.2,1)}
+body.cine #app, body.peek #app{opacity:0!important;transform:translateY(40px);pointer-events:none}
+body.cine .portrait, body.peek .portrait{opacity:0!important}
+#cineCap{position:fixed;left:0;right:0;bottom:max(7vh, calc(24px + env(safe-area-inset-bottom)));z-index:4;text-align:center;pointer-events:none;
+  opacity:0;transform:translateY(16px);transition:opacity .7s ease, transform .7s ease}
+body.cine #cineCap{opacity:1;transform:none}
+#cineCap .place{display:inline-block;font-family:'Philosopher',serif;font-weight:700;font-size:22px;color:#f7ecd2;
+  background:rgba(8,18,31,.6);padding:10px 22px;border-radius:30px;border:1px solid rgba(232,198,106,.6);text-shadow:0 2px 6px rgba(0,0,0,.6)}
+#cineCap .skip{display:block;margin-top:10px;font-size:13px;color:#f4e8cc;opacity:.75;text-shadow:0 1px 4px #000}
+#cineCap .bar{width:120px;height:3px;margin:10px auto 0;background:rgba(255,255,255,.25);border-radius:2px;overflow:hidden}
+#cineCap .bar i{display:block;height:100%;width:0;background:#e8c66a}
+body.cine #cineCap .bar i{animation:cineBar var(--cine,3.5s) linear forwards}
+@keyframes cineBar{to{width:100%}}
+#cineTap{position:fixed;inset:0;z-index:3;display:none}
+body.cine #cineTap, body.peek #cineTap{display:block}
+#eyeBtn{position:fixed;top:12px;right:116px;z-index:5;width:44px;height:44px;border-radius:50%;border:1px solid rgba(244,232,204,.5);
+  background:rgba(10,25,40,.7);color:#f4e8cc;font-size:19px;cursor:pointer}
+body.peek #eyeBtn{background:#9c4a24;border-color:#e8c66a}
+body.standalone #eyeBtn{right:64px}
 #app.enter > *{animation:cardIn .6s cubic-bezier(.2,.8,.2,1) both}
 #app.enter > *:nth-child(2){animation-delay:.07s}
 #app.enter > *:nth-child(3){animation-delay:.14s}
@@ -354,6 +391,9 @@ body.sky-sunset .cloud{fill:#f6c7a8} body.sky-dawn .cloud{fill:#f3d2c1}
 <img id="pL" class="portrait" alt="">
 <img id="pR" class="portrait" alt="">
 <button id="fsBtn" title="Во весь экран">⛶</button>
+<button id="eyeBtn" title="Посмотреть сцену">👁</button>
+<div id="cineTap"></div>
+<div id="cineCap"><span class="place"></span><div class="bar"><i></i></div><span class="skip">нажми, чтобы продолжить</span></div>
 <button id="sndBtn" title="Звук"></button>
 <div id="app"></div>
 <script>
@@ -839,9 +879,48 @@ function findImg(file){
   });
   return imgCache[file];
 }
-function showScene(name){
+/* Подписи сцен для показа перед текстом */
+const SCENE_PLACE = {
+  'port-night':'Тортуга, 1650 год', 'tavern':'Таверна «Старый якорь»', 'chest':'Сундук картографа',
+  'port-dawn':'Тортуга, рассвет', 'port-day':'Порт Тортуга', 'fog':'Сквозь время…',
+  'palos':'Палос, Испания · 2 августа 1492', 'ocean-day':'Атлантический океан', 'ocean-night':'Ночь на 12 октября 1492',
+  'island':'Остров Гуанахани · 12 октября 1492', 'sunset-port':'Возвращение в Тортугу'
+};
+/* Какую часть кадра держать в центре на вертикальном экране (0% — левый край, 100% — правый) */
+const SCENE_FOCUS = {'port-day':'32%','port-night':'38%','tavern':'50%','chest':'34%','fog':'50%','palos':'45%',
+  'ocean-day':'40%','ocean-night':'55%','island':'50%','sunset-port':'78%','port-dawn':'72%','map':'50%'};
+const cineSeen = new Set();
+let cineTimer = 0, cineOn = false;
+function startCine(name){
+  const sec = innerWidth <= 900 ? 3.5 : 2.5;
+  document.querySelector('#cineCap .place').textContent = SCENE_PLACE[name] || '';
+  document.documentElement.style.setProperty('--cine', sec + 's');
+  const bar = document.querySelector('#cineCap .bar i'); bar.style.animation = 'none'; void bar.offsetWidth; bar.style.animation = '';
+  document.body.classList.add('cine'); cineOn = true;
+  clearTimeout(cineTimer); cineTimer = setTimeout(endCine, sec * 1000);
+}
+function endCine(){
+  if(!cineOn) return;
+  cineOn = false; clearTimeout(cineTimer);
+  document.body.classList.remove('cine');
+  app.classList.remove('enter'); void app.offsetWidth; app.classList.add('enter');
+  setTimeout(fitPortraits, 650);
+}
+document.getElementById('cineTap').addEventListener('click', e => {
+  e.stopPropagation();
+  if(cineOn) endCine(); else document.body.classList.remove('peek');
+});
+document.getElementById('eyeBtn').onclick = e => { e.stopPropagation(); if(cineOn) endCine(); document.body.classList.toggle('peek'); };
+function showScene(name, opts){
   const m = SCENE_IMG[name];
   if(!m){ setScene(name); return; }
+  if(imgScene !== name){
+    document.documentElement.style.setProperty('--fx', SCENE_FOCUS[name] || '50%');
+    const hasVid = FILES.vid ? FILES.vid.includes(m.file) : false;
+    if(hasVid && !(opts && opts.cine === false) && !cineSeen.has(name) && SCENE_PLACE[name]){ cineSeen.add(name); startCine(name); }
+    else if(cineOn) endCine();
+  }
+  document.body.classList.remove('peek');
   imgScene = name;
   setAmbience(name);
   const chain = [m.file, ...(SCENE_ALT[name] || []), 'port-night', 'port-day', 'tavern', 'map'];
@@ -897,7 +976,9 @@ function setScene(name){
   const s = SCENES[name] || SCENES['day-sea'];
   if(name !== curScene){
     curScene = name;
-    document.body.className = 'sky-' + s.sky + ' ' + s.f.map(x => 'has-' + x).join(' ');
+    const bl = document.body.classList;
+    [...bl].forEach(c => { if(c.startsWith('sky-') || (c.startsWith('has-') && c !== 'has-img')) bl.remove(c); });
+    bl.add('sky-' + s.sky, ...s.f.map(x => 'has-' + x));
     const [x,y,k] = s.ship;
     document.getElementById('shipmove').style.transform = `translate(${x}px,${y}px) scale(${k})`;
     if(s.sun) document.getElementById('sun').style.transform = `translate(${s.sun[0]}px,${s.sun[1]}px)`;
@@ -1074,6 +1155,7 @@ let fitT = 0;
 const fitSoon = () => { cancelAnimationFrame(fitT); fitT = requestAnimationFrame(fitPortraits); };
 new ResizeObserver(fitSoon).observe(app);
 addEventListener('resize', fitSoon); addEventListener('scroll', fitSoon, {passive:true});
+setInterval(() => { if(innerWidth <= 900) fitPortraits(); }, 400); /* подстраховка: текст в карточке может меняться без смены экрана */
 if(matchMedia('(display-mode: fullscreen)').matches || matchMedia('(display-mode: standalone)').matches || navigator.standalone) document.body.classList.add('standalone');
 new MutationObserver(() => { app.classList.remove('enter'); void app.offsetWidth; app.classList.add('enter'); setTimeout(fitPortraits, 650); })
   .observe(app, {childList:true});
@@ -1119,7 +1201,7 @@ if('serviceWorker' in navigator && location.protocol !== 'file:'){
 }
 
 function renderTitle(){
-  showScene('port-night');
+  showScene('port-night', {cine:false});
   setCast(null, 'hero', null); /* слева в этой сцене костёр — ставим героиню к причалу справа */
   const has = state.introSeen;
   const who = state.player ? `, капитан ${esc(state.player.name)}` : '';
